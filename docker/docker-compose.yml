@@ -5,5 +5,47 @@ services:
       context: .
       dockerfile: ./build/Dockerfile
     tty: true # コンテナの永続化
+    cap_add:
+    - NET_ADMIN
     volumes:
       - ../:/go/src/app # マウントディレクトリ
+    networks:
+      test-tc:
+        ipv4_address: 192.168.10.6
+  test1:
+    image: alpine
+    tty: true # コンテナの永続化
+    networks:
+      test-tc:
+        ipv4_address: 192.168.10.10
+  test2:
+    image: alpine
+    tty: true # コンテナの永続化
+    networks:
+      test-tc:
+        ipv4_address: 192.168.10.20
+  test3:
+    image: alpine
+    tty: true # コンテナの永続化
+    networks:
+      test-tc:
+        ipv4_address: 192.168.10.30
+  test4:
+    image: alpine
+    tty: true # コンテナの永続化
+    networks:
+      test-tc:
+        ipv4_address: 192.168.10.40
+  test5:
+    image: alpine
+    tty: true # コンテナの永続化
+    networks:
+      test-tc:
+        ipv4_address: 192.168.10.50
+networks:
+  test-tc:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/16
