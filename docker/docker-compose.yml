@@ -18,6 +18,9 @@ services:
     networks:
       test-tc:
         ipv4_address: 192.168.10.10
+    volumes:
+      - ../:/go/src/app # マウントディレクトリ
+    working_dir: "/go/src/app"
   test2:
     image: alpine
     tty: true # コンテナの永続化
