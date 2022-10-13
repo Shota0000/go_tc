@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 
@@ -40,6 +42,10 @@ func main() {
 							Name:  "i, ip",
 							Usage: "Specify ip address for delay",
 						},
+						cli.StringFlag{
+							Name:  "f, file",
+							Usage: "Set delay by referencing json",
+						},
 					},
 					Action: func(c *cli.Context) error {
 						initialize(c)
@@ -62,10 +68,19 @@ func main() {
 							Name:  "p,priority",
 							Usage: "Specify priority as an integer",
 						},
+						cli.StringFlag{
+							Name:  "f, file",
+							Usage: "Set delay by referencing json",
+						},
 					},
 					Action: func(c *cli.Context) error {
-						add(c)
-						return nil
+						if c.String("file") == "" {
+							add("", c.StringSlice("ip"), c.String("time"))
+							return nil
+						} else {
+							addFromJson(c)
+							return nil
+						}
 					},
 				},
 			},
@@ -103,17 +118,22 @@ func initialize(c *cli.Context) {
 		fmt.Println(string(out))
 		return
 	}
-	// fmt.Println(string(out))
-	add(c)
+	if c.String("file") == "" {
+		add("", c.StringSlice("ip"), c.String("time"))
+	} else {
+		addFromJson(c)
+	}
 	fmt.Println("init completed!")
 }
 
-func add(c *cli.Context) {
-	var cmd []string
-	var out []byte
-	var err error
+func add(prio string, ip []string, time string) {
+	var (
+		cmd []string
+		out []byte
+		err error
+	)
+
 	roop := 1
-	prio := c.String("priority")
 
 	if prio == "" {
 		prio = "100"
@@ -121,9 +141,10 @@ func add(c *cli.Context) {
 
 	for {
 		cmd, _ = shellwords.Parse(fmt.Sprint("tc class add dev eth0 parent 1:1 classid 1:", roop, "0 htb rate 10Gbit"))
-		out, err = exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
+		_, err = exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
+		// out, err = exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
 		if err != nil {
-			fmt.Println(err, string(out), roop)
+			// fmt.Println(err, string(out), roop)
 			roop++
 			continue
 		}
@@ -134,7 +155,7 @@ func add(c *cli.Context) {
 
 	// shell scriptのcreate classを実装
 
-	cmd, _ = shellwords.Parse(fmt.Sprint("tc qdisc add dev eth0 parent 1:", roop, "0 handle 1", roop, ": netem delay ", c.String("time")))
+	cmd, _ = shellwords.Parse(fmt.Sprint("tc qdisc add dev eth0 parent 1:", roop, "0 handle 1", roop, ": netem delay ", time))
 	out, err = exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
 	if err != nil {
 		fmt.Println(err)
@@ -145,8 +166,8 @@ func add(c *cli.Context) {
 	// fmt.Println(fmt.Sprint("tc qdisc add dev eth0 parent 1:", roop, "0 handle 1", roop, ": netem delay ", c.String("time")))
 
 	// shell scriptのadd filterを実装
-	for i := 1; i <= len(c.StringSlice("ip")); i++ {
-		cmd, _ = shellwords.Parse(fmt.Sprint("tc filter add dev eth0 protocol ip parent 1: prio ", prio, " u32 match ip dst ", c.StringSlice("ip")[i-1], " flowid 1:", roop, "0"))
+	for i := 1; i <= len(ip); i++ {
+		cmd, _ = shellwords.Parse(fmt.Sprint("tc filter add dev eth0 protocol ip parent 1: prio ", prio, " u32 match ip dst ", ip[i-1], " flowid 1:", roop, "0"))
 		out, err = exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
 		if err != nil {
 			fmt.Println(err)
@@ -157,4 +178,37 @@ func add(c *cli.Context) {
 		// fmt.Println(fmt.Sprint("tc filter add dev eth0 protocol ip parent 1: prio 1 u32 match ip dst ", c.StringSlice("ip")[i-1], " flowid 1:", roop, "0"))
 	}
 	fmt.Println("add completed!")
+}
+
+func addFromJson(c *cli.Context) {
+	type DelayInfo struct {
+		Time string   `json:"time"`
+		From string   `json:"from"`
+		To   []string `json:"to"`
+		Prio string   `json:"priority"`
+	}
+
+	type Config struct {
+		Latency []DelayInfo `json:"latency"`
+	}
+	var (
+		cg Config
+	)
+
+	raw, err := ioutil.ReadFile(c.String("file"))
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	err = json.Unmarshal(raw, &cg)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	for _, di := range cg.Latency {
+		// fmt.Println(di.Prio, di.To, di.Time)
+		add(di.Prio, di.To, di.Time)
+	}
 }
