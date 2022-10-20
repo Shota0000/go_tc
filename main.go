@@ -32,7 +32,15 @@ func main() {
 				},
 				{
 					Name:  "init",
-					Usage: "if use set -t，ーi",
+					Usage: "initialize delay",
+					Action: func(c *cli.Context) error {
+						initialize(c)
+						return nil
+					},
+				},
+				{
+					Name:  "set",
+					Usage: "if use set -t,-f",
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "t, time",
@@ -44,13 +52,13 @@ func main() {
 						},
 					},
 					Action: func(c *cli.Context) error {
-						initialize(c)
+						set(c)
 						return nil
 					},
 				},
 				{
 					Name:  "add",
-					Usage: "if use set -t，ーi",
+					Usage: "if use set -t,-p,ーf",
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "t, time",
@@ -110,12 +118,17 @@ func initialize(c *cli.Context) {
 		fmt.Println(string(out))
 		return
 	}
+	fmt.Println("init completed!")
+}
+
+func set(c *cli.Context) {
+	initialize(c)
 	if c.String("file") == "" {
 		add("", c.Args(), c.String("time"))
 	} else {
 		addFromJson(c)
 	}
-	fmt.Println("init completed!")
+	fmt.Println("set completed!")
 }
 
 func add(prio string, ip []string, time string) {
