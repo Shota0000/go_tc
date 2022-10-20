@@ -38,10 +38,6 @@ func main() {
 							Name:  "t, time",
 							Usage: "Decide how much to delay",
 						},
-						cli.StringSliceFlag{
-							Name:  "i, ip",
-							Usage: "Specify ip address for delay",
-						},
 						cli.StringFlag{
 							Name:  "f, file",
 							Usage: "Set delay by referencing json",
@@ -60,10 +56,6 @@ func main() {
 							Name:  "t, time",
 							Usage: "Decide how much to delay",
 						},
-						cli.StringSliceFlag{
-							Name:  "i, ip",
-							Usage: "Specifies an ip address. Multiple addresses are possible.",
-						},
 						cli.StringFlag{
 							Name:  "p,priority",
 							Usage: "Specify priority as an integer",
@@ -75,7 +67,7 @@ func main() {
 					},
 					Action: func(c *cli.Context) error {
 						if c.String("file") == "" {
-							add("", c.StringSlice("ip"), c.String("time"))
+							add("", c.Args(), c.String("time"))
 							return nil
 						} else {
 							addFromJson(c)
@@ -119,7 +111,7 @@ func initialize(c *cli.Context) {
 		return
 	}
 	if c.String("file") == "" {
-		add("", c.StringSlice("ip"), c.String("time"))
+		add("", c.Args(), c.String("time"))
 	} else {
 		addFromJson(c)
 	}
