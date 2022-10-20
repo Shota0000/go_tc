@@ -50,6 +50,10 @@ func main() {
 							Name:  "f, file",
 							Usage: "Set delay by referencing json",
 						},
+						cli.StringFlag{
+							Name:  "s, source",
+							Usage: "When using json，Specify the source ip",
+						},
 					},
 					Action: func(c *cli.Context) error {
 						set(c)
@@ -71,6 +75,10 @@ func main() {
 						cli.StringFlag{
 							Name:  "f, file",
 							Usage: "Set delay by referencing json",
+						},
+						cli.StringFlag{
+							Name:  "s, source",
+							Usage: "When using json，Specify the source ip",
 						},
 					},
 					Action: func(c *cli.Context) error {
@@ -196,9 +204,7 @@ func addFromJson(c *cli.Context) {
 	type Config struct {
 		Latency []DelayInfo `json:"latency"`
 	}
-	var (
-		cg Config
-	)
+	var cg Config
 
 	raw, err := ioutil.ReadFile(c.String("file"))
 	if err != nil {
@@ -213,7 +219,10 @@ func addFromJson(c *cli.Context) {
 	}
 
 	for _, di := range cg.Latency {
-		// fmt.Println(di.Prio, di.To, di.Time)
-		add(di.Prio, di.To, di.Time)
+		if di.From == c.String("source") {
+			add(di.Prio, di.To, di.Time)
+		} else {
+			continue
+		}
 	}
 }
