@@ -22,8 +22,9 @@ VERSION:
 
 COMMANDS:
    reset  reset delay
-   init   if use set -t
-   add    if use set -t
+   init   initialize delay
+   set    if use set -t,ーf,-s
+   add    if use set -t,-p,ーf,-s
 
 GLOBAL OPTIONS:
    --help, -h  show help
@@ -33,26 +34,31 @@ GLOBAL OPTIONS:
 - 遅延をリセットした後に初期設定を行う
 ```
 NAME:
-   edge-emulate delay reset - reset delay
+   edge-emulate delay init - initialize delay
 
 USAGE:
-   edge-emulate delay reset
+   edge-emulate delay init 
 ```
 
 
 ## 遅延のセット
-- 例：`delay set -t 100ms 192.168.11.10 192.168.11.20...`
-    - -t オプションは遅延を，-i オプションはipアドレスを指定する．ipアドレスは複数指定可能
+- 例1：`delay set -t 100ms 192.168.11.10 192.168.11.20...`
+- 例2：`delay set -t 100ms -f latency.json`
+    - -t オプションで遅延を指定する
+    - -fオプションでjsonを指定
+    - -sオプションで送信元ipアドレスを指定．デフォルトはeth0のip
     - 遅延の初期設定，遅延の追加両方行う
 ```
 NAME:
-   edge-emulate delay init - if use set -t
+   edge-emulate delay set - if use set -t,ーf,-s
 
 USAGE:
-   edge-emulate delay init [command options] [arguments...]
+   edge-emulate delay set [command options] [arguments...]
 
 OPTIONS:
-   -t value, --time value  Decide how much to delay
+   -t value, --time value    Decide how much to delay
+   -f value, --file value    Set delay by referencing json
+   -s value, --source value  When using json，Specify the source ip. Default is the ip address of eth0
 ```
 ## 遅延のリセット
 - 例：`delay reset`
@@ -66,12 +72,12 @@ USAGE:
 
 ## 遅延の追加
 - 例：`delay add -t 100ms -p 5 192.168.11.10 192.168.11.20 ...`
-    - -tは初期設定と同様．
+    - -t，-f，-sは初期設定と同様．
     - -pは優先順位．現状，ipアドレスに紐づく遅延を後から変更することができない．そこで，新たに優先順位の高いルールを追加することによって，擬似的な変更を実現する．
     デフォルトの優先順位は100 (番号が若いほど優先順位が高い)
 ```
 NAME:
-   edge-emulate delay add - if use set -t
+   edge-emulate delay add - if use set -t,-p,ーf,-s
 
 USAGE:
    edge-emulate delay add [command options] [arguments...]
@@ -79,4 +85,6 @@ USAGE:
 OPTIONS:
    -t value, --time value      Decide how much to delay
    -p value, --priority value  Specify priority as an integer
+   -f value, --file value      Set delay by referencing json
+   -s value, --source value    When using json，Specify the source ip. Default is the ip address of eth0
 ```

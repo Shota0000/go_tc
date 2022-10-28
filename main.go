@@ -42,7 +42,7 @@ func main() {
 				},
 				{
 					Name:  "set",
-					Usage: "if use set -t,-f",
+					Usage: "if use set -t,ーf,-s",
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "t, time",
@@ -54,7 +54,7 @@ func main() {
 						},
 						cli.StringFlag{
 							Name:  "s, source",
-							Usage: "When using json，Specify the source ip",
+							Usage: "When using json，Specify the source ip. Default is the ip address of eth0",
 						},
 					},
 					Action: func(c *cli.Context) error {
@@ -64,7 +64,7 @@ func main() {
 				},
 				{
 					Name:  "add",
-					Usage: "if use set -t,-p,ーf",
+					Usage: "if use set -t,-p,ーf,-s",
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "t, time",
