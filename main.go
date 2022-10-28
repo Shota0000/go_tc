@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 
+	"github.com/mattn/go-pipeline"
 	"github.com/mattn/go-shellwords"
 	"github.com/urfave/cli"
 )
@@ -40,7 +42,7 @@ func main() {
 				},
 				{
 					Name:  "set",
-					Usage: "if use set -t,-f",
+					Usage: "if use set -t,ーf,-s",
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "t, time",
@@ -52,7 +54,7 @@ func main() {
 						},
 						cli.StringFlag{
 							Name:  "s, source",
-							Usage: "When using json，Specify the source ip",
+							Usage: "When using json，Specify the source ip. Default is the ip address of eth0",
 						},
 					},
 					Action: func(c *cli.Context) error {
@@ -62,7 +64,7 @@ func main() {
 				},
 				{
 					Name:  "add",
-					Usage: "if use set -t,-p,ーf",
+					Usage: "if use set -t,-p,ーf,-s",
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "t, time",
@@ -205,6 +207,7 @@ func addFromJson(c *cli.Context) {
 		Latency []DelayInfo `json:"latency"`
 	}
 	var cg Config
+	var ip string
 
 	raw, err := ioutil.ReadFile(c.String("file"))
 	if err != nil {
@@ -218,8 +221,24 @@ func addFromJson(c *cli.Context) {
 		os.Exit(1)
 	}
 
+	if c.String("source") == "" {
+		out, err := pipeline.Output(
+			[]string{"ip", "a"},
+			[]string{"grep", "-x", ".*eth0"},
+		)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		ip = strings.TrimLeft(string(out), "inet ")
+		ip = ip[0:strings.Index(ip, "/")]
+	} else {
+		ip = c.String("source")
+	}
+	fmt.Println(ip)
+
 	for _, di := range cg.Latency {
-		if di.From == c.String("source") {
+		if di.From == ip {
 			add(di.Prio, di.To, di.Time)
 		} else {
 			continue
