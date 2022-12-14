@@ -12,7 +12,6 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
-	"github.com/mattn/go-shellwords"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -44,17 +43,13 @@ func (cli dockerClient) Listcontainer(ctx context.Context, name string) []types.
 	return containers
 }
 
-func (cli dockerClient) tcCommand(ctx context.Context, tcimage string, c types.Container) {
-	//コマンド発行
-	test, _ := shellwords.Parse("qdisc add dev eth0 root netem delay 210ms")
-	// test, _ := shellwords.Parse("qdisc del dev eth0 root")
+func (cli dockerClient) tcCommand(ctx context.Context, tcimage string, c types.Container, cmd []string) {
 	if tcimage == "" {
 		// 未検証
-		cli.execOnContainer(ctx, c, test)
+		cli.execOnContainer(ctx, c, cmd)
 	} else {
-		cli.tcContainerCommand(ctx, c, tcimage, test)
+		cli.tcContainerCommand(ctx, c, tcimage, cmd)
 	}
-
 }
 
 func (cli dockerClient) execOnContainer(ctx context.Context, c types.Container, args []string) {
@@ -163,10 +158,10 @@ func (cli dockerClient) tcContainerCommand(ctx context.Context, c types.Containe
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 }
 
-func (cli dockerClient) Netemcontainer(name string, tcimage string) {
+func (cli dockerClient) Netemcontainer(name string, tcimage string, cmd []string) {
 	ctx := context.Background()
 	containers := cli.Listcontainer(ctx, name)
 	for _, c := range containers {
-		cli.tcCommand(ctx, tcimage, c)
+		cli.tcCommand(ctx, tcimage, c, cmd)
 	}
 }

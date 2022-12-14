@@ -14,6 +14,16 @@ func main() {
 	app.Name = "edge-emulate"
 	app.Usage = "emulate edge environment latency"
 	app.Version = "0.1.0"
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "name, n",
+			Usage: "Specify the name of the container",
+		},
+		cli.StringFlag{
+			Name:  "tc-image",
+			Usage: "Docker image with tc (iproute2 package); try 'supercord530/iproute2'",
+		},
+	}
 	app.Commands = initializeCLICommands()
 	app.Run(os.Args)
 }

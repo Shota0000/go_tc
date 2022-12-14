@@ -3,6 +3,7 @@ package netem
 import (
 	"encoding/json"
 	"fmt"
+	"go_tc/pkg/container"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -14,13 +15,8 @@ import (
 )
 
 func Reset(cli *cli.Context) {
-	cmd, _ := shellwords.Parse("tc qdisc del dev eth0 root")
-	out, err := exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println(string(out))
-		return
-	}
+	cmd, _ := shellwords.Parse("qdisc del dev eth0 root")
+	Netemcontainer(cli.String("name"), cli.String("tc-image"), cmd)
 	fmt.Println("reset completed!")
 }
 
@@ -158,4 +154,13 @@ func AddFromJson(cli *cli.Context) {
 			continue
 		}
 	}
+}
+
+func Netemcontainer(name string, tcimage string, cmd []string) {
+	client, err := container.NewClient()
+	if err != nil {
+		panic(err)
+	}
+	// client.Netemcontainer("docker_test1", "supercord530/iproute2")
+	client.Netemcontainer(name, tcimage, cmd)
 }
