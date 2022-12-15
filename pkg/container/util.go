@@ -9,6 +9,7 @@ import (
 	"github.com/docker/docker/client"
 )
 
+// 使ってない
 func Listcontainer() {
 	ctx := context.Background()
 	// client.FromEnv：環境変数からdockerサーバーへのURL，apiバージョン，証明書をとってくる関数．

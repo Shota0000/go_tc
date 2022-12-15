@@ -16,7 +16,7 @@ import (
 
 func Reset(cli *cli.Context) {
 	cmd, _ := shellwords.Parse("qdisc del dev eth0 root")
-	Netemcontainer(cli.String("name"), cli.String("tc-image"), cmd)
+	Netemcontainer(cli.GlobalString("name"), cli.GlobalString("tc-image"), cmd)
 	fmt.Println("reset completed!")
 }
 
