@@ -6,6 +6,7 @@ import (
 	"go_tc/pkg/container"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/mattn/go-pipeline"
@@ -33,40 +34,64 @@ func Initialize(cli *cli.Context) {
 func Set(cli *cli.Context) {
 	Initialize(cli)
 	if cli.String("file") == "" {
-		Add("", cli.Args(), cli.String("time"), cli.GlobalString("name"), cli.GlobalString("tc-image"))
+		Add("", cli.Args(), cli.String("time"))
 	} else {
 		AddFromJson(cli)
 	}
 	fmt.Println("set completed!")
 }
 
-func Add(prio string, ip []string, time string, name string, tcimage string) {
+func Add(prio string, ip []string, time string) {
 	var (
 		cmd []string
 		out []byte
 		err error
 	)
 
-	id := 1
+	roop := 1
+
 	if prio == "" {
 		prio = "100"
 	}
-	cmd, _ = shellwords.Parse(fmt.Sprint("class add dev eth0 parent 1:1 classid 1:", id, "0 htb rate 10Gbit"))
-	Netemcontainer(name, tcimage, cmd)
+
+	//クラス名にダブりが発生しないための処理(また考える)
+	for {
+		cmd, _ = shellwords.Parse(fmt.Sprint("class add dev eth0 parent 1:1 classid 1:", roop, "0 htb rate 10Gbit"))
+		_, err = exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
+		// out, err = exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
+		if err != nil {
+			// fmt.Println(err, string(out), roop)
+			roop++
+			continue
+		}
+		// fmt.Println(string(out))
+		// fmt.Println(fmt.Sprint("tc class add dev eth0 parent 1:1 classid 1:", roop, "0 htb rate 10Gbit"))
+		break
+	}
 
 	// shell scriptのcreate classを実装
-	cmd, _ = shellwords.Parse(fmt.Sprint("qdisc add dev eth0 parent 1:", id, "0 handle 1", id, ": netem delay ", time))
-	Netemcontainer(name, tcimage, cmd)
+
+	cmd, _ = shellwords.Parse(fmt.Sprint("tc qdisc add dev eth0 parent 1:", roop, "0 handle 1", roop, ": netem delay ", time))
+	out, err = exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println(string(out))
+		return
+	}
+	// fmt.Println(string(out))
+	// fmt.Println(fmt.Sprint("tc qdisc add dev eth0 parent 1:", roop, "0 handle 1", roop, ": netem delay ", c.String("time")))
 
 	// shell scriptのadd filterを実装
 	for i := 1; i <= len(ip); i++ {
-		cmd, _ = shellwords.Parse(fmt.Sprint("filter add dev eth0 protocol ip parent 1: prio ", prio, " u32 match ip dst ", ip[i-1], " flowid 1:", id, "0"))
-		Netemcontainer(name, tcimage, cmd)
+		cmd, _ = shellwords.Parse(fmt.Sprint("tc filter add dev eth0 protocol ip parent 1: prio ", prio, " u32 match ip dst ", ip[i-1], " flowid 1:", roop, "0"))
+		out, err = exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
 		if err != nil {
 			fmt.Println(err)
 			fmt.Println(string(out))
 			return
 		}
+		// fmt.Println(string(out))
+		// fmt.Println(fmt.Sprint("tc filter add dev eth0 protocol ip parent 1: prio 1 u32 match ip dst ", c.StringSlice("ip")[i-1], " flowid 1:", roop, "0"))
 	}
 	fmt.Println("add completed!")
 }
@@ -115,7 +140,7 @@ func AddFromJson(cli *cli.Context) {
 
 	for _, di := range cg.Latency {
 		if di.From == ip {
-			Add(di.Prio, di.To, di.Time, cli.GlobalString("name"), cli.GlobalString("tc-image"))
+			Add(di.Prio, di.To, di.Time)
 		} else {
 			continue
 		}
