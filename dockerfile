@@ -8,3 +8,8 @@ RUN mkdir /go/src/app
 WORKDIR /go/src/app
 # ホストのファイルをコンテナの作業ディレクトリに移行
 ADD . /go/src/app
+# バイナリ作成
+RUN go build go_tc
+# アプリ起動
+ENTRYPOINT ["./go_tc"]
+
