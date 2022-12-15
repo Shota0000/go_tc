@@ -31,6 +31,7 @@ func initializeCLICommands() []cli.Command {
 				cli.StringFlag{
 					Name:  "tc-image",
 					Usage: "Docker image with tc (iproute2 package); try 'supercord530/iproute2'",
+					// Value: "supercord530/iproute2",
 				},
 			},
 			Subcommands: []cli.Command{

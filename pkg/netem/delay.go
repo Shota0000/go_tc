@@ -16,28 +16,18 @@ import (
 
 func Reset(cli *cli.Context) {
 	cmd, _ := shellwords.Parse("qdisc del dev eth0 root")
+	// cmd, _ := shellwords.Parse("qdisc add dev eth0 root handle 1: htb default 1")
 	Netemcontainer(cli.GlobalString("name"), cli.GlobalString("tc-image"), cmd)
 	fmt.Println("reset completed!")
 }
 
 func Initialize(cli *cli.Context) {
 	Reset(cli)
-	cmd, _ := shellwords.Parse("tc qdisc add dev eth0 root handle 1: htb default 1")
-	out, err := exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println(string(out))
-		return
-	}
+	cmd, _ := shellwords.Parse("qdisc add dev eth0 root handle 1: htb default 1")
+	Netemcontainer(cli.GlobalString("name"), cli.GlobalString("tc-image"), cmd)
 	// fmt.Println(string(out))
-
-	cmd, _ = shellwords.Parse("tc class add dev eth0 parent 1: classid 1:1 htb rate 1000Gbit")
-	out, err = exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println(string(out))
-		return
-	}
+	cmd, _ = shellwords.Parse("class add dev eth0 parent 1: classid 1:1 htb rate 1000Gbit")
+	Netemcontainer(cli.GlobalString("name"), cli.GlobalString("tc-image"), cmd)
 	fmt.Println("init completed!")
 }
 
@@ -64,8 +54,9 @@ func Add(prio string, ip []string, time string) {
 		prio = "100"
 	}
 
+	//クラス名にダブりが発生しないための処理(また考える)
 	for {
-		cmd, _ = shellwords.Parse(fmt.Sprint("tc class add dev eth0 parent 1:1 classid 1:", roop, "0 htb rate 10Gbit"))
+		cmd, _ = shellwords.Parse(fmt.Sprint("class add dev eth0 parent 1:1 classid 1:", roop, "0 htb rate 10Gbit"))
 		_, err = exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
 		// out, err = exec.Command(cmd[0], cmd[1:]...).CombinedOutput()
 		if err != nil {
@@ -161,6 +152,5 @@ func Netemcontainer(name string, tcimage string, cmd []string) {
 	if err != nil {
 		panic(err)
 	}
-	// client.Netemcontainer("docker_test1", "supercord530/iproute2")
 	client.Netemcontainer(name, tcimage, cmd)
 }
