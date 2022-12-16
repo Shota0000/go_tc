@@ -79,37 +79,37 @@ func initializeCLICommands() []cli.Command {
 						return nil
 					},
 				},
-				{
-					Name:  "add",
-					Usage: "if use set -t,-p,ーf,-s",
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "t, time",
-							Usage: "Decide how much to delay",
-						},
-						cli.StringFlag{
-							Name:  "p,priority",
-							Usage: "Specify priority as an integer",
-						},
-						cli.StringFlag{
-							Name:  "f, file",
-							Usage: "Set delay by referencing json",
-						},
-						cli.StringFlag{
-							Name:  "s, source",
-							Usage: "When using json，Specify the source ip",
-						},
-					},
-					Action: func(cli *cli.Context) error {
-						if cli.String("file") == "" {
-							netem.Add("", cli.Args(), cli.String("time"))
-							return nil
-						} else {
-							netem.AddFromJson(cli)
-							return nil
-						}
-					},
-				},
+				// {
+				// 	Name:  "add",
+				// 	Usage: "if use set -t,-p,ーf,-s",
+				// 	Flags: []cli.Flag{
+				// 		cli.StringFlag{
+				// 			Name:  "t, time",
+				// 			Usage: "Decide how much to delay",
+				// 		},
+				// 		cli.StringFlag{
+				// 			Name:  "p,priority",
+				// 			Usage: "Specify priority as an integer",
+				// 		},
+				// 		cli.StringFlag{
+				// 			Name:  "f, file",
+				// 			Usage: "Set delay by referencing json",
+				// 		},
+				// 		cli.StringFlag{
+				// 			Name:  "s, source",
+				// 			Usage: "When using json，Specify the source ip",
+				// 		},
+				// 	},
+				// 	Action: func(cli *cli.Context) error {
+				// 		if cli.String("file") == "" {
+				// 			netem.Add("", cli.Args(), cli.String("time"))
+				// 			return nil
+				// 		} else {
+				// 			netem.AddFromJson(cli)
+				// 			return nil
+				// 		}
+				// 	},
+				// },
 			},
 		},
 	}
