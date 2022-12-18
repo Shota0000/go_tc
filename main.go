@@ -31,7 +31,7 @@ func initializeCLICommands() []cli.Command {
 				cli.StringFlag{
 					Name:  "tc-image",
 					Usage: "Docker image with tc (iproute2 package); try 'supercord530/iproute2'",
-					// Value: "supercord530/iproute2",
+					Value: "supercord530/iproute2",
 				},
 			},
 			Subcommands: []cli.Command{
@@ -39,22 +39,28 @@ func initializeCLICommands() []cli.Command {
 					Name:  "reset",
 					Usage: "reset delay",
 					Action: func(cli *cli.Context) error {
-						netem.Reset(cli)
+						netem.Reset(cli, cli.String("name"))
 						return nil
 					},
-					// Flags: []cli.Flag{
-					// 	cli.StringFlag{
-					// 		Name:  "n, name",
-					// 		Usage: "Specify the name of the container",
-					// 	},
-					// },
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "n, name",
+							Usage: "Specify the name of the container",
+						},
+					},
 				},
 				{
 					Name:  "init",
 					Usage: "initialize delay",
 					Action: func(cli *cli.Context) error {
-						netem.Initialize(cli)
+						netem.Initialize(cli, cli.String("name"))
 						return nil
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "n, name",
+							Usage: "Specify the name of the container",
+						},
 					},
 				},
 				{
@@ -70,9 +76,13 @@ func initializeCLICommands() []cli.Command {
 							Usage: "Set delay by referencing json",
 						},
 						cli.StringFlag{
-							Name:  "s, source",
-							Usage: "When using json，Specify the source ip. Default is the ip address of eth0",
+							Name:  "n, name",
+							Usage: "Specify the name of the container",
 						},
+						// cli.StringFlag{
+						// 	Name:  "s, source",
+						// 	Usage: "When using json，Specify the source ip. Default is the ip address of eth0",
+						// },
 					},
 					Action: func(cli *cli.Context) error {
 						netem.Set(cli)

@@ -1,28 +1,32 @@
 {
     "latency":[
         {
-            "time":"100ms",
             "from":"edge1", 
-            "priority":"100",
-            "to":[
-                "edge2",
-                "edge3" 
+            "delay":[
+                {
+                    "time":"200ms",
+                    "priority":"100",
+                    "to":[
+                        "edge2"
+                    ]
+                },
+                {
+                    "time":"150ms",
+                    "to":[
+                        "edge3" 
+                    ]
+                }
             ]
         },
         {
-            "time":"200ms",
-            "from":"edge2", 
-            "to":[
-                "edge1",
-                "edge3" 
-            ]
-        },
-        {
-            "time":"200ms",
-            "from":"edge3", 
-            "to":[
-                "edge1",
-                "edge2" 
+            "from":"edge2",
+            "delay":[
+                {
+                    "time":"150ms",
+                    "to":[
+                        "edge3" 
+                    ]
+                }
             ]
         }
     ]

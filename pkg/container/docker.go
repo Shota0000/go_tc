@@ -32,20 +32,21 @@ func NewClient() (dockerClient, error) {
 func (cli dockerClient) Listcontainer(ctx context.Context, name string) []types.Container {
 	cli.client.NegotiateAPIVersion(ctx)
 	filterArgs := filters.NewArgs()
-	filterArgs.Add("name", name)
+	// filterArgs.Add("name", name)
+	filterArgs.Add("label", fmt.Sprint("io.kubernetes.pod.name=", name))
 	containers, err := cli.client.ContainerList(ctx, types.ContainerListOptions{Filters: filterArgs})
 	if err != nil {
 		panic(err)
 	}
 	for _, container := range containers {
-		fmt.Println(container.ID[:12], container.Image)
+		//確認用
+		fmt.Println(container.ID[:12], container.Image, container.NetworkSettings.Networks[container.HostConfig.NetworkMode].IPAddress)
 	}
 	return containers
 }
 
 func (cli dockerClient) tcCommand(ctx context.Context, tcimage string, c types.Container, cmd []string) {
 	if tcimage == "" {
-		// 未検証
 		cli.execOnContainer(ctx, c, cmd)
 	} else {
 		cli.tcContainerCommand(ctx, c, tcimage, cmd)
