@@ -27,3 +27,13 @@
         }
     ]
 }
+
+kubectl delete -f edge_emulate.yml
+kubectl apply -f edge_emulate.yml
+kubectl get pods -n edge-emulate
+kubectl logs edge-emulate-8k7ff -n=edge-emulate
+
+cd image-build/pkg/netem
+
+docker image build -t supercord530/edge-emulate:flute . 
+docker push supercord530/edge-emulate:flute

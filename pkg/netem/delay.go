@@ -118,6 +118,8 @@ func SetFromJson(cli *cli.Context) {
 				containers := containercli.Listcontainer(ctx, to)
 				// toをlabelにしてコンテナ一覧を取得。その後、それらのipアドレスを格納
 				for _, container := range containers {
+					fmt.Println(container.HostConfig.NetworkMode)
+					fmt.Println(container.NetworkSettings.Networks)
 					ip = append(ip, container.NetworkSettings.Networks[container.HostConfig.NetworkMode].IPAddress)
 				}
 			}

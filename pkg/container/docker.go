@@ -41,6 +41,9 @@ func (cli dockerClient) Listcontainer(ctx context.Context, name string) []types.
 	for _, container := range containers {
 		//確認用
 		fmt.Println(container.ID[:12], container.Image, container.NetworkSettings.Networks[container.HostConfig.NetworkMode].IPAddress)
+		containerjson, _ := cli.client.ContainerInspect(ctx, container.ID)
+		// stringからどうやって取ろう
+		fmt.Println(containerjson.Config.Env[0])
 	}
 	return containers
 }
