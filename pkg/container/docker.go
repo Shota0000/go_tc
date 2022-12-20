@@ -162,6 +162,51 @@ func (cli dockerClient) tcContainerCommand(ctx context.Context, c types.Containe
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 }
 
+func (cli dockerClient) CreateIpContaier(ctx context.Context, c types.Container, tcimage string) {
+	log.WithFields(log.Fields{
+		"container": c.ID,
+		"tc-image":  tcimage,
+	}).Info("executing ip a command in a separate container joining target container network namespace")
+	reader, err := cli.client.ImagePull(ctx, tcimage, types.ImagePullOptions{})
+	if err != nil {
+		panic(err)
+	}
+	io.Copy(os.Stdout, reader)
+	// container config
+	config := container.Config{
+		Image:      tcimage,
+		Entrypoint: []string{"ip"},
+		Cmd:        []string{"a"},
+		Tty:        false,
+	}
+	hconfig := container.HostConfig{
+		NetworkMode: container.NetworkMode("container:" + c.ID),
+		// others
+		PortBindings: nat.PortMap{},
+		DNS:          []string{},
+		DNSOptions:   []string{},
+		DNSSearch:    []string{},
+	}
+	log.WithField("network", hconfig.NetworkMode).Info("network mode")
+	log.WithField("image", config.Image).Info("creating tc-container")
+	resp, err := cli.client.ContainerCreate(ctx, &config, &hconfig, nil, nil, "")
+	if err != nil {
+		panic(err)
+	}
+	log.WithField("id", resp.ID).Info("tc container created, starting it")
+	if err := cli.client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+		panic(err)
+	}
+	out, err := cli.client.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true})
+	if err != nil {
+		panic(err)
+	}
+
+	//StdCopy は `src` をデマルチプレックスします。これは、StdWriter のインスタンスを使用してマルチプレックスされた 2 つのストリームを含んでいると仮定しています。src` から読み込むと、StdCopy は `dstout` と `dsterr` に書き込みを行います。
+	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+
+}
+
 func (cli dockerClient) Netemcontainer(name string, tcimage string, cmd []string) {
 	ctx := context.Background()
 	containers := cli.Listcontainer(ctx, name)

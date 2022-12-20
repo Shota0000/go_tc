@@ -1,7 +1,6 @@
 package netem
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"go_tc/pkg/container"
@@ -103,26 +102,16 @@ func SetFromJson(cli *cli.Context) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	containercli, err := container.NewClient()
 	if err != nil {
 		panic(err)
 	}
 	//latency配列分を回す
 	for _, latency := range cg.Latency {
-		ctx := context.Background()
 		Initialize(cli, latency.From)
 		//delay内に書かれている設定分を回す
 		for i, delay := range latency.Delay {
-			//toの数だけ回す
-			for _, to := range delay.To {
-				containers := containercli.Listcontainer(ctx, to)
-				// toをlabelにしてコンテナ一覧を取得。その後、それらのipアドレスを格納
-				for _, container := range containers {
-					fmt.Println(container.HostConfig.NetworkMode)
-					fmt.Println(container.NetworkSettings.Networks)
-					ip = append(ip, container.NetworkSettings.Networks[container.HostConfig.NetworkMode].IPAddress)
-				}
-			}
+			//to内のip突っ込む
+			ip = append(ip, delay.To...)
 			//class名の被りを防ぐためにiを渡す
 			Add(delay.Prio, ip, delay.Time, latency.From, cli.GlobalString("tc-image"), i)
 		}
