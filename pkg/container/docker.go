@@ -16,6 +16,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var pullflag bool
+
 type dockerClient struct {
 	client *client.Client
 }
@@ -40,10 +42,10 @@ func (cli dockerClient) Listcontainer(ctx context.Context, name string) []types.
 	}
 	for _, container := range containers {
 		//確認用
-		fmt.Println(container.ID[:12], container.Image, container.NetworkSettings.Networks[container.HostConfig.NetworkMode].IPAddress)
-		containerjson, _ := cli.client.ContainerInspect(ctx, container.ID)
-		// stringからどうやって取ろう
-		fmt.Println(containerjson.Config.Env[0])
+		fmt.Println(container.ID[:12], container.Image)
+		// containerjson, _ := cli.client.ContainerInspect(ctx, container.ID)
+		// // stringからどうやって取ろう
+		// fmt.Println(containerjson.Config.Env[0])
 	}
 	return containers
 }
@@ -118,11 +120,14 @@ func (cli dockerClient) tcContainerCommand(ctx context.Context, c types.Containe
 		"args":      args,
 	}).Info("executing tc command in a separate container joining target container network namespace")
 
-	reader, err := cli.client.ImagePull(ctx, tcimage, types.ImagePullOptions{})
-	if err != nil {
-		panic(err)
+	if !pullflag {
+		reader, err := cli.client.ImagePull(ctx, tcimage, types.ImagePullOptions{})
+		if err != nil {
+			panic(err)
+		}
+		io.Copy(os.Stdout, reader)
 	}
-	io.Copy(os.Stdout, reader)
+
 	// container config
 	config := container.Config{
 		Image:      tcimage,
