@@ -23,7 +23,6 @@ type dockerClient struct {
 }
 
 func NewClient() (dockerClient, error) {
-
 	apiClient, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return dockerClient{client: nil}, errors.Wrap(err, "failed to create docker client")
@@ -34,7 +33,6 @@ func NewClient() (dockerClient, error) {
 func (cli dockerClient) Listcontainer(ctx context.Context, name string) []types.Container {
 	cli.client.NegotiateAPIVersion(ctx)
 	filterArgs := filters.NewArgs()
-	// filterArgs.Add("name", name)
 	filterArgs.Add("label", fmt.Sprint("io.kubernetes.pod.name=", name))
 	containers, err := cli.client.ContainerList(ctx, types.ContainerListOptions{Filters: filterArgs})
 	if err != nil {
@@ -43,9 +41,6 @@ func (cli dockerClient) Listcontainer(ctx context.Context, name string) []types.
 	for _, container := range containers {
 		//確認用
 		fmt.Println(container.ID[:12], container.Image)
-		// containerjson, _ := cli.client.ContainerInspect(ctx, container.ID)
-		// // stringからどうやって取ろう
-		// fmt.Println(containerjson.Config.Env[0])
 	}
 	return containers
 }
@@ -83,7 +78,7 @@ func (cli dockerClient) execOnContainer(ctx context.Context, c types.Container, 
 	if checkInspect.ExitCode != 0 {
 		panic(errors.Errorf("command tc not found inside the %s container", "tc", c.ID))
 	}
-	// if command found execute it
+	// あったらコンテナ内でtcコマンド実行
 	log.WithField("command", "tc").Info("command found: continue execution")
 
 	// prepare exec config
@@ -138,7 +133,7 @@ func (cli dockerClient) tcContainerCommand(ctx context.Context, c types.Containe
 	}
 	hconfig := container.HostConfig{
 		// auto remove container on tc command exit
-		// AutoRemove: true,
+		AutoRemove: true,
 		// NET_ADMIN is required for "tc netem"
 		CapAdd: []string{"NET_ADMIN"},
 		// use target container network stack
@@ -163,8 +158,6 @@ func (cli dockerClient) tcContainerCommand(ctx context.Context, c types.Containe
 	if err != nil {
 		panic(err)
 	}
-
-	//StdCopy は `src` をデマルチプレックスします。これは、StdWriter のインスタンスを使用してマルチプレックスされた 2 つのストリームを含んでいると仮定しています。src` から読み込むと、StdCopy は `dstout` と `dsterr` に書き込みを行います。
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 }
 
@@ -207,10 +200,7 @@ func (cli dockerClient) CreateIpContaier(ctx context.Context, c types.Container,
 	if err != nil {
 		panic(err)
 	}
-
-	//StdCopy は `src` をデマルチプレックスします。これは、StdWriter のインスタンスを使用してマルチプレックスされた 2 つのストリームを含んでいると仮定しています。src` から読み込むと、StdCopy は `dstout` と `dsterr` に書き込みを行います。
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
-
 }
 
 func (cli dockerClient) Netemcontainer(name string, tcimage string, cmd []string) {

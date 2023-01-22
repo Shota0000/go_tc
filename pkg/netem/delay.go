@@ -15,7 +15,6 @@ import (
 
 func Reset(cli *cli.Context, name string) {
 	cmd, _ := shellwords.Parse("qdisc del dev eth0 root")
-	// cmd, _ := shellwords.Parse("qdisc add dev eth0 root handle 1: htb default 1")
 	Netemcontainer(name, cli.GlobalString("tc-image"), cmd)
 	fmt.Println("reset completed!")
 }
@@ -31,13 +30,6 @@ func Initialize(cli *cli.Context, name string) {
 }
 
 func Set(cli *cli.Context) {
-	// Initialize(cli)
-	// if cli.String("file") == "" {
-	// 	Add("", cli.Args(), cli.String("time"), cli.GlobalString("name"), cli.GlobalString("tc-image"), 1)
-	// } else {
-	// 	AddFromJson(cli)
-	// }
-	// fmt.Println("set completed!")
 	if cli.String("file") == "" {
 		Initialize(cli, cli.String("name"))
 		Add("", cli.Args(), cli.String("time"), cli.String("name"), cli.GlobalString("tc-image"), 1)
@@ -114,7 +106,7 @@ func SetFromJson(cli *cli.Context) {
 		Initialize(cli, latency.From)
 		//delay内に書かれている設定分を回す
 		for i, delay := range latency.Delay {
-			//toの中身突っ込む.名前解決は2重for文で。動作未確認
+			//toの中身突っ込む.名前解決は2重for文内で
 			for _, to := range delay.To {
 				ip, err := net.ResolveIPAddr("ip", fmt.Sprint(to, ".", cg.Service, ".", cg.Namespace, ".svc.cluster.local"))
 				if err != nil {
@@ -127,31 +119,6 @@ func SetFromJson(cli *cli.Context) {
 			Add(delay.Prio, ips, delay.Time, latency.From, cli.GlobalString("tc-image"), i)
 		}
 	}
-
-	// //自分のipアドレスを確認。その後、json内のipと照合
-	// if cli.String("source") == "" {
-	// 	out, err := pipeline.Output(
-	// 		[]string{"ip", "a"},
-	// 		[]string{"grep", "-x", ".*eth0"},
-	// 	)
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 		return
-	// 	}
-	// 	ip = strings.TrimLeft(string(out), "inet ")
-	// 	ip = ip[0:strings.Index(ip, "/")]
-	// } else {
-	// 	ip = cli.String("source")
-	// }
-	// fmt.Println(ip)
-
-	// for _, di := range cg.Latency {
-	// 	if di.From == ip {
-	// 		Add(di.Prio, di.To, di.Time, cli.GlobalString("name"), cli.GlobalString("tc-image"))
-	// 	} else {
-	// 		continue
-	// 	}
-	// }
 }
 
 func Netemcontainer(name string, tcimage string, cmd []string) {
