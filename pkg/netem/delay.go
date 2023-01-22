@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"net"
+
 	"github.com/mattn/go-shellwords"
 	"github.com/urfave/cli"
 )
@@ -86,10 +88,12 @@ func SetFromJson(cli *cli.Context) {
 	}
 
 	type Config struct {
-		Latency []Latency `json:"latency"`
+		Service   string
+		Namespace string
+		Latency   []Latency `json:"latency"`
 	}
 	var cg Config
-	var ip []string
+	var ips []string
 
 	raw, err := ioutil.ReadFile(cli.String("file"))
 	if err != nil {
@@ -110,10 +114,17 @@ func SetFromJson(cli *cli.Context) {
 		Initialize(cli, latency.From)
 		//delay内に書かれている設定分を回す
 		for i, delay := range latency.Delay {
-			//to内のip突っ込む
-			ip = append(ip, delay.To...)
+			//toの中身突っ込む.名前解決は2重for文で。動作未確認
+			for _, to := range delay.To {
+				ip, err := net.ResolveIPAddr("ip", fmt.Sprint(to, ".", cg.Service, ".", cg.Namespace, ".svc.cluster.local"))
+				if err != nil {
+					panic(err)
+				}
+				ips = append(ips, ip.IP.String())
+			}
+			fmt.Println("ip:", ips)
 			//class名の被りを防ぐためにiを渡す
-			Add(delay.Prio, ip, delay.Time, latency.From, cli.GlobalString("tc-image"), i)
+			Add(delay.Prio, ips, delay.Time, latency.From, cli.GlobalString("tc-image"), i)
 		}
 	}
 

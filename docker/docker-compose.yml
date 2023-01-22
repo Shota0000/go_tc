@@ -13,7 +13,7 @@ services:
       test-tc:
         ipv4_address: 192.168.10.6
     labels:
-      - "io.kubernetes.pod.name=edge0"
+      - "io.kubernetes.pod.name=edge-0"
   test1:
     image: alpine
     tty: true # コンテナの永続化
@@ -21,7 +21,7 @@ services:
       test-tc:
         ipv4_address: 192.168.10.10
     labels:
-      - "io.kubernetes.pod.name=edge1"
+      - "io.kubernetes.pod.name=edge-1"
   test2:
     image: alpine
     tty: true # コンテナの永続化
@@ -29,7 +29,7 @@ services:
       test-tc:
         ipv4_address: 192.168.10.20
     labels:
-      - "io.kubernetes.pod.name=edge2"
+      - "io.kubernetes.pod.name=edge-2"
   test3:
     image: alpine
     tty: true # コンテナの永続化
@@ -37,7 +37,7 @@ services:
       test-tc:
         ipv4_address: 192.168.10.30
     labels:
-      - "io.kubernetes.pod.name=edge3"
+      - "io.kubernetes.pod.name=edge-3"
   test4:
     image: alpine
     tty: true # コンテナの永続化
@@ -45,7 +45,7 @@ services:
       test-tc:
         ipv4_address: 192.168.10.40
     labels:
-      - "io.kubernetes.pod.name=edge4"
+      - "io.kubernetes.pod.name=edge-4"
   test5:
     image: alpine
     tty: true # コンテナの永続化
@@ -53,7 +53,7 @@ services:
       test-tc:
         ipv4_address: 192.168.10.50
     labels:
-      - "io.kubernetes.pod.name=edge5"
+      - "io.kubernetes.pod.name=edge-5"
 networks:
   test-tc:
     driver: bridge
