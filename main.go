@@ -34,34 +34,34 @@ func initializeCLICommands() []cli.Command {
 				},
 			},
 			Subcommands: []cli.Command{
-				{
-					Name:  "reset",
-					Usage: "reset delay",
-					Action: func(cli *cli.Context) error {
-						netem.Reset(cli, cli.String("name"))
-						return nil
-					},
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "n, name",
-							Usage: "Specify the name of the container",
-						},
-					},
-				},
-				{
-					Name:  "init",
-					Usage: "initialize delay",
-					Action: func(cli *cli.Context) error {
-						netem.Initialize(cli, cli.String("name"))
-						return nil
-					},
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "n, name",
-							Usage: "Specify the name of the container",
-						},
-					},
-				},
+				// {
+				// 	Name:  "reset",
+				// 	Usage: "reset delay",
+				// 	Action: func(cli *cli.Context) error {
+				// 		netem.Reset(cli, cli.String("name"))
+				// 		return nil
+				// 	},
+				// 	Flags: []cli.Flag{
+				// 		cli.StringFlag{
+				// 			Name:  "n, name",
+				// 			Usage: "Specify the name of the container",
+				// 		},
+				// 	},
+				// },
+				// {
+				// 	Name:  "init",
+				// 	Usage: "initialize delay",
+				// 	Action: func(cli *cli.Context) error {
+				// 		netem.Initialize(cli, cli.String("name"))
+				// 		return nil
+				// 	},
+				// 	Flags: []cli.Flag{
+				// 		cli.StringFlag{
+				// 			Name:  "n, name",
+				// 			Usage: "Specify the name of the container",
+				// 		},
+				// 	},
+				// },
 				{
 					Name:  "set",
 					Usage: "if use set -t,ーf,-s",

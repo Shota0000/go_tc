@@ -1,6 +1,4 @@
 {
-    "service": "edge",
-    "namespace": "edge-emulate",
     "latency":[
         {
             "from":"edge-1",
@@ -9,13 +7,13 @@
                     "time":"200ms",
                     "priority":"100",
                     "to":[
-                        "test2"
+                        "192.168.10.20"
                     ]
                 },
                 {
                     "time":"150ms",
                     "to":[
-                        "test3" 
+                        "192.168.10.30" 
                     ]
                 }
             ]
@@ -26,7 +24,7 @@
                 {
                     "time":"150ms",
                     "to":[
-                        "test3" 
+                        "192.168.10.30" 
                     ]
                 }
             ]

@@ -45,15 +45,15 @@ func (cli dockerClient) Listcontainer(ctx context.Context, name string) []types.
 	return containers
 }
 
-func (cli dockerClient) tcCommand(ctx context.Context, tcimage string, c types.Container, cmd []string) {
+func (cli dockerClient) tcCommand(ctx context.Context, tcimage string, c types.Container, cmds [][]string) {
 	if tcimage == "" {
-		cli.execOnContainer(ctx, c, cmd)
+		cli.execOnContainer(ctx, c, cmds)
 	} else {
-		cli.tcContainerCommand(ctx, c, tcimage, cmd)
+		cli.tcContainerCommand(ctx, c, tcimage, cmds)
 	}
 }
 
-func (cli dockerClient) execOnContainer(ctx context.Context, c types.Container, args []string) {
+func (cli dockerClient) execOnContainer(ctx context.Context, c types.Container, args [][]string) {
 	checkExists := types.ExecConfig{
 		Cmd: []string{"which", "tc"},
 	}
@@ -80,35 +80,43 @@ func (cli dockerClient) execOnContainer(ctx context.Context, c types.Container, 
 	}
 	// あったらコンテナ内でtcコマンド実行
 	log.WithField("command", "tc").Info("command found: continue execution")
-
-	// prepare exec config
-	config := types.ExecConfig{
-		Privileged: true,
-		Cmd:        append([]string{"tc"}, args...),
-	}
-	// execute the command
-	exec, err = cli.client.ContainerExecCreate(ctx, c.ID, config)
-	if err != nil {
-		fmt.Println("failed to create exec configuration for a command")
-		panic(err)
-	}
-	log.Infof("starting exec tc %s (%s)", args, exec.ID)
-	err = cli.client.ContainerExecStart(ctx, exec.ID, types.ExecStartCheck{})
-	if err != nil {
-		fmt.Println("failed to start command execution")
-		panic(err)
-	}
-	exitInspect, err := cli.client.ContainerExecInspect(ctx, exec.ID)
-	if err != nil {
-		fmt.Println("failed to inspect command execution")
-		panic(err)
-	}
-	if exitInspect.ExitCode != 0 {
-		panic(errors.Errorf("command tc failed in %s container; run it in manually to Info", c.ID))
+	// コマンド数だけ回す
+	for _, cmd := range args {
+		// prepare exec config
+		config := types.ExecConfig{
+			Privileged: true,
+			Cmd:        append([]string{"tc"}, cmd...),
+		}
+		// execute the command
+		exec, err = cli.client.ContainerExecCreate(ctx, c.ID, config)
+		if err != nil {
+			fmt.Println("failed to create exec configuration for a command")
+			panic(err)
+		}
+		log.Infof("starting exec tc %s (%s)", cmd, exec.ID)
+		err = cli.client.ContainerExecStart(ctx, exec.ID, types.ExecStartCheck{})
+		if err != nil {
+			fmt.Println("failed to start command execution")
+			panic(err)
+		}
+		exitInspect, err := cli.client.ContainerExecInspect(ctx, exec.ID)
+		if err != nil {
+			fmt.Println("failed to inspect command execution")
+			panic(err)
+		}
+		//ログ出し
+		out, err := cli.client.ContainerLogs(ctx, c.ID, types.ContainerLogsOptions{ShowStdout: true})
+		if err != nil {
+			panic(err)
+		}
+		stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+		if exitInspect.ExitCode != 0 {
+			log.Errorf("command tc failed in %s container; run it in manually to Info", c.ID)
+		}
 	}
 }
 
-func (cli dockerClient) tcContainerCommand(ctx context.Context, c types.Container, tcimage string, args []string) {
+func (cli dockerClient) tcContainerCommand(ctx context.Context, c types.Container, tcimage string, args [][]string) {
 	log.WithFields(log.Fields{
 		"container": c.ID,
 		"tc-image":  tcimage,
@@ -127,13 +135,12 @@ func (cli dockerClient) tcContainerCommand(ctx context.Context, c types.Containe
 	// container config
 	config := container.Config{
 		Image:      tcimage,
-		Entrypoint: []string{"tc"},
-		Cmd:        args,
+		Entrypoint: []string{"/bin/sh", "-c", "while :; do sleep 10; done"},
 		Tty:        false,
 	}
 	hconfig := container.HostConfig{
 		// auto remove container on tc command exit
-		AutoRemove: true,
+		AutoRemove: false,
 		// NET_ADMIN is required for "tc netem"
 		CapAdd: []string{"NET_ADMIN"},
 		// use target container network stack
@@ -159,6 +166,45 @@ func (cli dockerClient) tcContainerCommand(ctx context.Context, c types.Containe
 		panic(err)
 	}
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+	// コマンド数だけ回す
+	for _, cmd := range args {
+		// prepare exec config
+		config := types.ExecConfig{
+			Privileged: true,
+			Cmd:        append([]string{"tc"}, cmd...),
+		}
+		// execute the command
+		exec, err := cli.client.ContainerExecCreate(ctx, resp.ID, config)
+		if err != nil {
+			fmt.Println("failed to create exec configuration for a command")
+			panic(err)
+		}
+		log.Infof("starting exec tc %s (%s)", cmd, exec.ID)
+		err = cli.client.ContainerExecStart(ctx, exec.ID, types.ExecStartCheck{})
+		if err != nil {
+			fmt.Println("failed to start command execution")
+			panic(err)
+		}
+		exitInspect, err := cli.client.ContainerExecInspect(ctx, exec.ID)
+		if err != nil {
+			fmt.Println("failed to inspect command execution")
+			panic(err)
+		}
+		//ログ出し
+		out, err := cli.client.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true})
+		if err != nil {
+			panic(err)
+		}
+		stdcopy.StdCopy(os.Stdout, os.Stderr, out)
+		if exitInspect.ExitCode != 0 {
+			log.Errorf("command tc failed in %s container; run it in manually to Info", resp.ID)
+		}
+	}
+	err = cli.client.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{Force: true})
+	if err != nil {
+		log.Errorf("remove failed %s container", resp.ID)
+		fmt.Println(err)
+	}
 }
 
 func (cli dockerClient) CreateIpContaier(ctx context.Context, c types.Container, tcimage string) {
@@ -203,10 +249,10 @@ func (cli dockerClient) CreateIpContaier(ctx context.Context, c types.Container,
 	stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 }
 
-func (cli dockerClient) Netemcontainer(name string, tcimage string, cmd []string) {
+func (cli dockerClient) Netemcontainer(name string, tcimage string, cmds [][]string) {
 	ctx := context.Background()
 	containers := cli.Listcontainer(ctx, name)
 	for _, c := range containers {
-		cli.tcCommand(ctx, tcimage, c, cmd)
+		cli.tcCommand(ctx, tcimage, c, cmds)
 	}
 }
