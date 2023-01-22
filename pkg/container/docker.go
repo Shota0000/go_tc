@@ -126,6 +126,7 @@ func (cli dockerClient) tcContainerCommand(ctx context.Context, c types.Containe
 			panic(err)
 		}
 		io.Copy(os.Stdout, reader)
+		pullflag = true
 	}
 
 	// container config
