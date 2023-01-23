@@ -16,8 +16,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var pullflag bool
-
 type dockerClient struct {
 	client *client.Client
 }
@@ -123,15 +121,11 @@ func (cli dockerClient) tcContainerCommand(ctx context.Context, c types.Containe
 		"args":      args,
 	}).Info("executing tc command in a separate container joining target container network namespace")
 
-	if !pullflag {
-		reader, err := cli.client.ImagePull(ctx, tcimage, types.ImagePullOptions{})
-		if err != nil {
-			panic(err)
-		}
-		io.Copy(os.Stdout, reader)
-		pullflag = true
+	reader, err := cli.client.ImagePull(ctx, tcimage, types.ImagePullOptions{})
+	if err != nil {
+		panic(err)
 	}
-
+	io.Copy(os.Stdout, reader)
 	// container config
 	config := container.Config{
 		Image:      tcimage,

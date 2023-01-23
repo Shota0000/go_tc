@@ -1,5 +1,5 @@
 # goバージョン
-FROM golang:1.16.3 AS builder
+FROM golang:1.17.13 AS builder
 # appディレクトリの作成
 RUN mkdir /go/src/app
 # ワーキングディレクトリの設定
