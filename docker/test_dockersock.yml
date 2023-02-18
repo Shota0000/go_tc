@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-dockersock
+  namespace: edge-emulate
+spec:
+  containers:
+  - name: edge-emulate-debug
+    image: supercord530/edge-emulate-debug:flute
+    command: ["docker"]
+    args:
+        - "ps"
+    volumeMounts:
+      - mountPath: /var/run/docker.sock
+        name: dockersocket
+  volumes:
+    - name: dockersocket
+      hostPath:
+        path: /var/run/docker.sock

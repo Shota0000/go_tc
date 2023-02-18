@@ -1,0 +1,57 @@
+{   "service": "edge",
+    "namespace": "edge-emulate",
+    "latency":[
+        {
+            "from":"edge-0",
+            "delay":[
+                {
+                    "time":"100ms",
+                    "to":[
+                        "edge-1"
+                    ]
+                },
+                {
+                    "time":"150ms",
+                    "to":[
+                        "edge-2"
+                    ]
+                }
+            ]
+        },
+        {
+            "from":"edge-1",
+            "delay":[
+                {
+                    "time":"100ms",
+                    "to":[
+                        "edge-2" 
+                    ]
+                },
+                {
+                    "time":"200ms",
+                    "to":[
+                        "edge-3"
+                    ]
+                }
+            ]
+        },
+        {
+            "from":"edge-2",
+            "delay":[
+                {
+                    "time":"150ms",
+                    "to":[
+                        "edge-1" 
+                    ]
+                },
+                {
+                    "time":"200ms",
+                    "to":[
+                        "edge-3"
+                    ]
+                }
+            ]
+        }
+
+    ]
+}
