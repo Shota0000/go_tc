@@ -1,1 +1,7 @@
-/.vscode
+docker/
+json/
+mac/
+minutes/
+binary/
+old-document/
+tc100.sh
