@@ -1,4 +1,5 @@
-# A Multiple Network latency Emulation Tool for Kubernetes
+# A Network latency Emulation Tool for Kubernetes
+This tool introduces a delay between kubernetes pods. It allows you to set up delays between multiple pods in a single operation.
 ## Prerequisites
 
 Minimal required Docker version `v18.06.0`, Kubernetes version `v1.1.0`.
