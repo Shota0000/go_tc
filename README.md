@@ -1,6 +1,4 @@
-# Kubernetes-edge-testbed： Testbed for the edge that can simulate various network environments and failures
-Kubernetes-edge-testbed is a tool for simulating the behavior of applications in edge environments. This tool enables integrated performance evaluation that takes into account load bias and network fluctuations.
-
+# A Multiple Network latency Emulation Tool for Kubernetes
 ## Prerequisites
 
 Minimal required Docker version `v18.06.0`, Kubernetes version `v1.1.0`.
