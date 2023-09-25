@@ -50,6 +50,8 @@ Create a JSON file for the delayed deployment tool. An example is written below.
 
 ```text
 {
+    "service": "edge-manager",
+    "namespace": "default",
     "latency":[
         {
             "from":"edge-0",
