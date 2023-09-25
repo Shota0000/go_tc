@@ -108,6 +108,7 @@ Create a JSON file for the delayed deployment tool. An example is written below.
     ]
 }
 ```
+- Need to describe service name and namespace name.
 - Set the delay for each pod in the `latency` array. Note that only uplink delays can be set. If you want to set up a round trip, for example, a round trip between edge-0 and edge-1, you need to set up a delay for each edge-0 and edge-1.
 - The `from` should be the name of the pod where you want to introduce the delay
 - In the `delay` array, set as many arrays as the number of delays you want to set.
