@@ -183,11 +183,45 @@ Deleting the delay implementation pod does not reset the delay.
 
 Run `kubectl delete configmap 'previously created configmap name'`. If you forget the configmap name, you can see it with `kubectl get configmap`.
 
-After emptying the `to` part of the JSON configuration file,
+After emptying the `delay` part of the JSON configuration file,
 Execute `kubectl create configmap 'any name' --from-file= JSON file name'` command again.
 
 If you have changed the JSON file name, modify the corresponding location in the YAML file, and then run `kubectl delete -f YAML file name`. If you have changed the JSON file name, modify the corresponding location in the YAML file and then apply.
 
+Example
+```text
+{
+    "service": "edge-manager",
+    "namespace": "default",
+    "latency": [
+        {
+            "from": "edge-db-1",
+            "delay": []
+        },
+        {
+            "from": "edge-db-2",
+            "delay": []
+        },
+        {
+            "from": "edge-db-3",
+            "delay": []
+        },
+        {
+            "from": "edge-db-4",
+            "delay": []
+        },
+        {
+            "from": "edge-db-5",
+            "delay": []
+        },
+        {
+            "from": "edge-db-6",
+            "delay": []
+        }
+    }
+}
+```
+<!-- 
 ##### Method 2
 
 After running `kubectl delete -f 'YAML for delayed installation pod'`, change the args part of the YAML file as follows.
@@ -200,7 +234,7 @@ args:
    - edge-0
 ```
 After that, run `kubectl apply -f 'filename of pod for delay installation'`.
-
+-->
 ## License
 
 Code is under the [Apache License v2](https://www.apache.org/licenses/LICENSE-2.0.txt).
